@@ -5,12 +5,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,9 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HostalApp1Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    Greeting(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -42,33 +35,50 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
 
-    val context = LocalContext.current
-    var showHostales by remember { mutableStateOf(false) }
+    var showActions by remember { mutableStateOf(false) }
+
+    if (!showActions) {
+        IngresarView(onIngresar = { showActions = true })
+    } else {
+        AccionesView(onVolver = { showActions = false })
+    }
+}
+
+@Composable
+fun IngresarView(onIngresar: () -> Unit) {
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(
-            text = "Bienvenido a HostalApp",
-            fontSize = 24.sp
-        )
+        Text(text = "Bienvenido a HostalApp", fontSize = 24.sp)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(onClick = {
-            Toast.makeText(context, "Ingresando...", Toast.LENGTH_SHORT).show()
-        }) {
+        Button(onClick = onIngresar) {
             Text("Ingresar")
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(32.dp))
+@Composable
+fun AccionesView(onVolver: () -> Unit) {
 
-        Text(text = "¿Qué vamos a hacer?")
+    val context = LocalContext.current
+    var showHostales by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(text = "¿Qué vamos a hacer?", fontSize = 20.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -81,12 +91,13 @@ fun Greeting(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
-            showHostales = true
+            showHostales = !showHostales
         }) {
             Text("Ver Hostales")
         }
 
         if (showHostales) {
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(text = "Hostales Disponibles", fontSize = 20.sp)
@@ -114,6 +125,12 @@ fun Greeting(modifier: Modifier = Modifier) {
             Toast.makeText(context, "Eliminar Hostal", Toast.LENGTH_SHORT).show()
         }) {
             Text("Eliminar Hostal")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(onClick = onVolver) {
+            Text("Volver")
         }
     }
 }
