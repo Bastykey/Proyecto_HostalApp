@@ -11,20 +11,25 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hostalapp1.ui.theme.HostalApp1Theme
 
+private val PurpleSoft = Color(0xFF7E57C2)
+
 data class Hostal(
     val nombre: String,
     val precio: String
 )
+
 enum class Rol {
     Admin,
     Cliente
 }
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,14 +43,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
 
-    var showActions by remember { mutableStateOf(false) }
     var showCrearHostal by remember { mutableStateOf(false) }
     var showEditarHostal by remember { mutableStateOf(false) }
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
     var rolSeleccionado by remember { mutableStateOf<Rol?>(null) }
+
     val hostales = remember { mutableStateListOf<Hostal>() }
 
     when {
@@ -63,11 +69,10 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-
         rolSeleccionado == Rol.Admin && showCrearHostal -> {
             CrearHostalView(
-                onGuardar = { hostal ->
-                    hostales.add(hostal)
+                onGuardar = {
+                    hostales.add(it)
                     showCrearHostal = false
                 },
                 onVolver = { showCrearHostal = false }
@@ -77,11 +82,9 @@ fun Greeting(modifier: Modifier = Modifier) {
         rolSeleccionado == Rol.Admin && showEditarHostal && hostalSeleccionado != null -> {
             EditarHostalView(
                 hostal = hostalSeleccionado!!,
-                onGuardar = { hostalEditado ->
+                onGuardar = { editado ->
                     val index = hostales.indexOf(hostalSeleccionado)
-                    if (index != -1) {
-                        hostales[index] = hostalEditado
-                    }
+                    if (index != -1) hostales[index] = editado
                     hostalSeleccionado = null
                     showEditarHostal = false
                 },
@@ -95,15 +98,13 @@ fun Greeting(modifier: Modifier = Modifier) {
         else -> {
             AccionesView(
                 hostales = hostales,
+                rol = rolSeleccionado!!,
                 onCrear = { showCrearHostal = true },
-                onEditar = { hostal ->
-                    hostalSeleccionado = hostal
+                onEditar = {
+                    hostalSeleccionado = it
                     showEditarHostal = true
                 },
-                onVolver = {
-                    showActions = false
-                    rolSeleccionado = null // volver a seleccionar rol
-                }
+                onVolver = { rolSeleccionado = null }
             )
         }
     }
@@ -115,21 +116,26 @@ fun SeleccionarRolView(
     onSeleccionarCliente: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "¡Bienvenido a HostalApp!", fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(34.dp))
-        Button(onClick = onSeleccionarAdmin, modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text("Admin")
-        }
+        Text("¡Bienvenido a HostalApp!", fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onSeleccionarAdmin,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) { Text("Admin") }
+
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onSeleccionarCliente, modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text("Cliente")
-        }
+
+        Button(
+            onClick = onSeleccionarCliente,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) { Text("Cliente") }
     }
 }
 
@@ -138,32 +144,56 @@ fun ClienteView(
     hostales: SnapshotStateList<Hostal>,
     onVolver: () -> Unit
 ) {
+
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Hostales Disponibles", fontSize = 22.sp)
+
+        Text("Hostales Disponibles", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
         if (hostales.isEmpty()) {
-            Text(text = "No hay hostales registrados...")
+            Text("No hay hostales registrados...")
         } else {
             hostales.forEach { hostal ->
-                Text("${hostal.nombre}   ${hostal.precio}")
-                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("${hostal.nombre}   ${hostal.precio}")
+
+                    Button(
+                        onClick = {
+                            Toast.makeText(
+                                context,
+                                "Hostal seleccionado: ${hostal.nombre}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+                    ) { Text("Seleccionar") }
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onVolver, modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text("Volver a selección")
-        }
+
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) { Text("Volver a selección") }
     }
 }
 
 @Composable
 fun AccionesView(
     hostales: SnapshotStateList<Hostal>,
+    rol: Rol,
     onCrear: () -> Unit,
     onEditar: (Hostal) -> Unit,
     onVolver: () -> Unit
@@ -178,27 +208,28 @@ fun AccionesView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(text = "¿Qué vamos a hacer?", fontSize = 22.sp)
-
+        Text("¿Qué vamos a hacer?", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(onClick = onCrear, modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text("Crear Hostal")
-        }
+        if (rol == Rol.Admin) {
+            Button(
+                onClick = onCrear,
+                colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) { Text("Crear Hostal") }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         Button(
             onClick = { showHostales = !showHostales },
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Ver Hostales")
-        }
+        ) { Text("Ver Hostales") }
 
         if (showHostales) {
-
             Spacer(modifier = Modifier.height(24.dp))
-            Text(text = "Hostales Disponibles", fontSize = 20.sp)
+            Text("Hostales Disponibles", fontSize = 20.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             if (hostales.isEmpty()) {
@@ -210,18 +241,21 @@ fun AccionesView(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         Text("${hostal.nombre}   ${hostal.precio}")
 
-                        Row {
-                            Button(onClick = { onEditar(hostal) }) {
-                                Text("Editar")
-                            }
+                        if (rol == Rol.Admin) {
+                            Row {
+                                Button(
+                                    onClick = { onEditar(hostal) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+                                ) { Text("Editar") }
 
-                            Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
 
-                            Button(onClick = { hostalAEliminar = hostal }) {
-                                Text("Eliminar")
+                                Button(
+                                    onClick = { hostalAEliminar = hostal },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+                                ) { Text("Eliminar") }
                             }
                         }
                     }
@@ -229,8 +263,8 @@ fun AccionesView(
             }
         }
 
-        hostalAEliminar?.let { hostal ->
-            hostales.remove(hostal)
+        hostalAEliminar?.let {
+            hostales.remove(it)
             hostalAEliminar = null
             showHostales = false
             Toast.makeText(context, "Hostal eliminado correctamente", Toast.LENGTH_SHORT).show()
@@ -238,9 +272,11 @@ fun AccionesView(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(onClick = onVolver, modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text("Volver al inicio")
-        }
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) { Text("Volver al inicio") }
     }
 }
 
@@ -257,7 +293,6 @@ fun CrearHostalView(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Crear Hostal", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -273,18 +308,19 @@ fun CrearHostalView(
                     onGuardar(Hostal(nombre, precio))
                 }
             },
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Guardar")
-        }
+        ) { Text("Guardar") }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(onClick = onVolver) {
-            Text("Volver")
-        }
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+        ) { Text("Volver") }
     }
 }
+
 @Composable
 fun EditarHostalView(
     hostal: Hostal,
@@ -299,7 +335,6 @@ fun EditarHostalView(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Actualizar Hostal", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -314,18 +349,19 @@ fun EditarHostalView(
                 if (nombre.isNotBlank() && precio.isNotBlank()) {
                     onGuardar(Hostal(nombre, precio))
                 }
-            }
-        ) {
-            Text("Guardar cambios")
-        }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+        ) { Text("Guardar cambios") }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(onClick = onVolver) {
-            Text("Volver hacia atrás")
-        }
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+        ) { Text("Volver") }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
@@ -333,4 +369,3 @@ fun GreetingPreview() {
         Greeting()
     }
 }
-
