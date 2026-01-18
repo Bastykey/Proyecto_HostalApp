@@ -1,7 +1,6 @@
 package com.example.hostalapp1
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,14 +8,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hostalapp1.ui.theme.HostalApp1Theme
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
+
+data class Hostal(
+    val nombre: String,
+    val precio: String
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,11 +43,32 @@ class MainActivity : ComponentActivity() {
 fun Greeting(modifier: Modifier = Modifier) {
 
     var showActions by remember { mutableStateOf(false) }
+    var showCrearHostal by remember { mutableStateOf(false) }
 
-    if (!showActions) {
-        IngresarView(onIngresar = { showActions = true })
-    } else {
-        AccionesView(onVolver = { showActions = false })
+    val hostales = remember { mutableStateListOf<Hostal>() }
+
+    when {
+        !showActions -> {
+            IngresarView(onIngresar = { showActions = true })
+        }
+
+        showCrearHostal -> {
+            CrearHostalView(
+                onGuardar = { hostal ->
+                    hostales.add(hostal)
+                    showCrearHostal = false
+                },
+                onVolver = { showCrearHostal = false }
+            )
+        }
+
+        else -> {
+            AccionesView(
+                hostales = hostales,
+                onCrear = { showCrearHostal = true },
+                onVolver = { showActions = false }
+            )
+        }
     }
 }
 
@@ -69,18 +97,14 @@ fun IngresarView(onIngresar: () -> Unit) {
 }
 
 @Composable
-fun AccionesView(onVolver: () -> Unit) {
+fun AccionesView(
+    hostales: List<Hostal>,
+    onCrear: () -> Unit,
+    onVolver: () -> Unit
+) {
 
     val context = LocalContext.current
     var showHostales by remember { mutableStateOf(false) }
-
-    val hostales = listOf(
-        "Hostal Plaza Centro   $25.000",
-        "Hostal Santiago        $37.000",
-        "Hostal Costanera      $43.000",
-        "Hostal Vitacura       $55.000",
-        "Hostal Las Condes    $79.000"
-    )
 
     Column(
         modifier = Modifier
@@ -94,9 +118,7 @@ fun AccionesView(onVolver: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                Toast.makeText(context, "Crear Hostal", Toast.LENGTH_SHORT).show()
-            },
+            onClick = onCrear,
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
             Text("Crear Hostal")
@@ -119,8 +141,12 @@ fun AccionesView(onVolver: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            hostales.forEach { hostal ->
-                Text(text = hostal)
+            if (hostales.isEmpty()) {
+                Text(text = "No hay hostales registrados. . .")
+            } else {
+                hostales.forEach { hostal ->
+                    Text(text = "${hostal.nombre}   ${hostal.precio}")
+                }
             }
         }
 
@@ -153,6 +179,67 @@ fun AccionesView(onVolver: () -> Unit) {
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
             Text("Volver al inicio")
+        }
+    }
+}
+
+
+@Composable
+fun CrearHostalView(
+    onGuardar: (Hostal) -> Unit,
+    onVolver: () -> Unit
+) {
+
+    var nombre by remember { mutableStateOf("") }
+    var precio by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(text = "Crear Hostal", fontSize = 22.sp)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        TextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre del Hostal") },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        TextField(
+            value = precio,
+            onValueChange = { precio = it },
+            label = { Text("Precio por noche") },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                if (nombre.isNotBlank() && precio.isNotBlank()) {
+                    onGuardar(Hostal(nombre, precio))
+                }
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Guardar")
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onVolver,
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Volver hacia atrás")
         }
     }
 }
