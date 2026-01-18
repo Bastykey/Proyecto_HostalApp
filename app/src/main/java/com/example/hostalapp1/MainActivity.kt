@@ -21,7 +21,10 @@ data class Hostal(
     val nombre: String,
     val precio: String
 )
-
+enum class Rol {
+    Admin,
+    Cliente
+}
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,24 +38,33 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
 
     var showActions by remember { mutableStateOf(false) }
     var showCrearHostal by remember { mutableStateOf(false) }
     var showEditarHostal by remember { mutableStateOf(false) }
-
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
-
+    var rolSeleccionado by remember { mutableStateOf<Rol?>(null) }
     val hostales = remember { mutableStateListOf<Hostal>() }
 
     when {
-        !showActions -> {
-            IngresarView(onIngresar = { showActions = true })
+        rolSeleccionado == null -> {
+            SeleccionarRolView(
+                onSeleccionarAdmin = { rolSeleccionado = Rol.Admin },
+                onSeleccionarCliente = { rolSeleccionado = Rol.Cliente }
+            )
         }
 
-        showCrearHostal -> {
+        rolSeleccionado == Rol.Cliente -> {
+            ClienteView(
+                hostales = hostales,
+                onVolver = { rolSeleccionado = null }
+            )
+        }
+
+
+        rolSeleccionado == Rol.Admin && showCrearHostal -> {
             CrearHostalView(
                 onGuardar = { hostal ->
                     hostales.add(hostal)
@@ -62,7 +74,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-        showEditarHostal && hostalSeleccionado != null -> {
+        rolSeleccionado == Rol.Admin && showEditarHostal && hostalSeleccionado != null -> {
             EditarHostalView(
                 hostal = hostalSeleccionado!!,
                 onGuardar = { hostalEditado ->
@@ -88,31 +100,63 @@ fun Greeting(modifier: Modifier = Modifier) {
                     hostalSeleccionado = hostal
                     showEditarHostal = true
                 },
-                onVolver = { showActions = false }
+                onVolver = {
+                    showActions = false
+                    rolSeleccionado = null // volver a seleccionar rol
+                }
             )
         }
     }
 }
 
 @Composable
-fun IngresarView(onIngresar: () -> Unit) {
-
+fun SeleccionarRolView(
+    onSeleccionarAdmin: () -> Unit,
+    onSeleccionarCliente: () -> Unit
+) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(text = "¡Bienvenido a HostalApp!", fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(34.dp))
+        Button(onClick = onSeleccionarAdmin, modifier = Modifier.fillMaxWidth(0.8f)) {
+            Text("Admin")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onSeleccionarCliente, modifier = Modifier.fillMaxWidth(0.8f)) {
+            Text("Cliente")
+        }
+    }
+}
 
-        Text(text = "¡Bienvenido a HostalApp!", fontSize = 28.sp)
+@Composable
+fun ClienteView(
+    hostales: SnapshotStateList<Hostal>,
+    onVolver: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Hostales Disponibles", fontSize = 22.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (hostales.isEmpty()) {
+            Text(text = "No hay hostales registrados...")
+        } else {
+            hostales.forEach { hostal ->
+                Text("${hostal.nombre}   ${hostal.precio}")
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
-
-
-        Button(
-            onClick = onIngresar,
-            modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Ingresar")
+        Button(onClick = onVolver, modifier = Modifier.fillMaxWidth(0.8f)) {
+            Text("Volver a selección")
         }
     }
 }
@@ -241,7 +285,6 @@ fun CrearHostalView(
         }
     }
 }
-
 @Composable
 fun EditarHostalView(
     hostal: Hostal,
@@ -283,7 +326,6 @@ fun EditarHostalView(
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
