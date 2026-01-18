@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hostalapp1.ui.theme.HostalApp1Theme
 import android.widget.Toast
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.platform.LocalContext
 
 
@@ -96,15 +97,17 @@ fun IngresarView(onIngresar: () -> Unit) {
     }
 }
 
+
 @Composable
 fun AccionesView(
-    hostales: List<Hostal>,
+    hostales: SnapshotStateList<Hostal>,
     onCrear: () -> Unit,
     onVolver: () -> Unit
 ) {
 
     val context = LocalContext.current
     var showHostales by remember { mutableStateOf(false) }
+    var hostalAEliminar by remember { mutableStateOf<Hostal?>(null) }
 
     Column(
         modifier = Modifier
@@ -145,9 +148,39 @@ fun AccionesView(
                 Text(text = "No hay hostales registrados. . .")
             } else {
                 hostales.forEach { hostal ->
-                    Text(text = "${hostal.nombre}   ${hostal.precio}")
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Text(text = "${hostal.nombre}   ${hostal.precio}")
+
+                        Button(
+                            onClick = {
+                                hostalAEliminar = hostal
+                            }
+                        ) {
+                            Text("Eliminar")
+                        }
+                    }
                 }
             }
+        }
+
+        hostalAEliminar?.let { hostal ->
+            hostales.remove(hostal)
+            hostalAEliminar = null
+            showHostales = false
+
+            Toast.makeText(
+                context,
+                "Hostal eliminado correctamente",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -161,17 +194,6 @@ fun AccionesView(
             Text("Actualizar Hostal")
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(
-            onClick = {
-                Toast.makeText(context, "Eliminar Hostal", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Eliminar Hostal")
-        }
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
@@ -182,7 +204,6 @@ fun AccionesView(
         }
     }
 }
-
 
 @Composable
 fun CrearHostalView(
@@ -239,7 +260,7 @@ fun CrearHostalView(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
-            Text("Volver hacia atrás")
+            Text("Volver  hacia atrás")
         }
     }
 }
