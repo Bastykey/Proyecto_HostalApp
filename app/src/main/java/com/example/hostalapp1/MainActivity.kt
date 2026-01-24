@@ -1,4 +1,3 @@
-package com.example.hostalapp1
 
 import android.os.Bundle
 import android.widget.Toast
@@ -22,10 +21,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 private val PurpleSoft = Color(0xFF7E57C2)
 
@@ -37,6 +33,17 @@ data class Hostal(
 enum class Rol {
     Admin,
     Cliente
+}
+
+private const val ADMIN_USUARIO = "Admin"
+private const val ADMIN_CONTRASEÑA = "Admin 1"
+
+fun validarCredenciales(usuario: String, contraseña: String): Rol? {
+    return when {
+        usuario.isBlank() || contraseña.isBlank() -> null
+        usuario == ADMIN_USUARIO && contraseña == ADMIN_CONTRASEÑA -> Rol.Admin
+        else -> Rol.Cliente
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -55,91 +62,81 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
-
-    val navController = rememberNavController()
-    val hostales = remember { mutableStateListOf<Hostal>() }
+    var showCrearHostal by remember { mutableStateOf(false) }
+    var showEditarHostal by remember { mutableStateOf(false) }
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
+    var rolSeleccionado by remember { mutableStateOf<Rol?>(null) }
+    val hostales = remember { mutableStateListOf<Hostal>() }
 
-    NavHost(
-        navController = navController,
-        startDestination = "rol",
-        modifier = modifier
-    ) {
-
-        composable("rol") {
-            SeleccionarRolView(
-                onSeleccionarAdmin = {
-                    navController.navigate("admin")
-                },
-                onSeleccionarCliente = {
-                    navController.navigate("cliente")
+    when {
+        rolSeleccionado == null -> {
+            LoginView(
+                onLoginExitoso = { rol ->
+                    rolSeleccionado = rol
                 }
             )
         }
 
-        composable("cliente") {
+        rolSeleccionado == Rol.Cliente -> {
             ClienteView(
                 hostales = hostales,
-                onVolver = {
-                    navController.popBackStack()
-                }
+                onVolver = { rolSeleccionado = null }
             )
         }
 
-        composable("admin") {
-            AccionesView(
-                hostales = hostales,
-                rol = Rol.Admin,
-                onCrear = {
-                    navController.navigate("crear")
-                },
-                onEditar = {
-                    hostalSeleccionado = it
-                    navController.navigate("editar")
-                },
-                onVolver = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable("crear") {
+        rolSeleccionado == Rol.Admin && showCrearHostal -> {
             CrearHostalView(
                 onGuardar = {
                     hostales.add(it)
-                    navController.popBackStack()
+                    showCrearHostal = false
+                },
+                onVolver = { showCrearHostal = false }
+            )
+        }
+
+        rolSeleccionado == Rol.Admin && showEditarHostal && hostalSeleccionado != null -> {
+            EditarHostalView(
+                hostal = hostalSeleccionado!!,
+                onGuardar = { editado ->
+                    val index = hostales.indexOf(hostalSeleccionado)
+                    if (index != -1) {
+                        hostales[index] = editado
+                    }
+                    hostalSeleccionado = null
+                    showEditarHostal = false
                 },
                 onVolver = {
-                    navController.popBackStack()
+                    hostalSeleccionado = null
+                    showEditarHostal = false
                 }
             )
         }
 
-        composable("editar") {
-            hostalSeleccionado?.let { hostal ->
-                EditarHostalView(
-                    hostal = hostal,
-                    onGuardar = { editado ->
-                        val index = hostales.indexOf(hostal)
-                        if (index != -1) {
-                            hostales[index] = editado
-                        }
-                        navController.popBackStack()
-                    },
-                    onVolver = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+        else -> {
+            AccionesView(
+                hostales = hostales,
+                rol = rolSeleccionado!!,
+                onCrear = { showCrearHostal = true },
+                onEditar = {
+                    hostalSeleccionado = it
+                    showEditarHostal = true
+                },
+                onVolver = { rolSeleccionado = null }
+            )
         }
     }
 }
 
 @Composable
-fun SeleccionarRolView(
-    onSeleccionarAdmin: () -> Unit,
-    onSeleccionarCliente: () -> Unit
+fun LoginView(
+    onLoginExitoso: (Rol) -> Unit
 ) {
+    val context = LocalContext.current
+    var usuario by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
+    var errorUsuario by remember { mutableStateOf(false) }
+    var errorContraseña by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -148,25 +145,90 @@ fun SeleccionarRolView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("¡Bienvenido a HostalApp!", fontSize = 24.sp)
-
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Inicia sesión para continuar", fontSize = 16.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = onSeleccionarAdmin,
-            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
-            modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Admin")
+        TextField(
+            value = usuario,
+            onValueChange = {
+                usuario = it
+                errorUsuario = false
+            },
+            label = { Text("Usuario") },
+            singleLine = true,
+            isError = errorUsuario,
+            modifier = Modifier.fillMaxWidth(0.8f),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            )
+        )
+
+        if (errorUsuario) {
+            Text(
+                text = "El usuario es requerido",
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        TextField(
+            value = contraseña,
+            onValueChange = {
+                contraseña = it
+                errorContraseña = false
+            },
+            label = { Text("Contraseña") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            isError = errorContraseña,
+            modifier = Modifier.fillMaxWidth(0.8f),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            )
+        )
+
+        if (errorContraseña) {
+            Text(
+                text = "La contraseña es requerida",
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         Button(
-            onClick = onSeleccionarCliente,
+            onClick = {
+                val rol = validarCredenciales(usuario.trim(), contraseña.trim())
+                when {
+                    rol == null -> {
+                        errorUsuario = usuario.isBlank()
+                        errorContraseña = contraseña.isBlank()
+                        Toast.makeText(
+                            context,
+                            "Por favor, completa todos los campos",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    rol == Rol.Admin -> {
+                        onLoginExitoso(rol)
+                    }
+                    else -> {
+                        onLoginExitoso(rol)
+                    }
+                }
+            },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
-            Text("Cliente")
+            Text("Iniciar Sesión")
         }
     }
 }
@@ -176,18 +238,14 @@ fun ClienteView(
     hostales: SnapshotStateList<Hostal>,
     onVolver: () -> Unit
 ) {
-
     val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Hostales Disponibles", fontSize = 22.sp)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         if (hostales.isEmpty()) {
@@ -201,9 +259,7 @@ fun ClienteView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Text("${hostal.nombre}   ${hostal.precio}")
-
                     Button(
                         onClick = {
                             Toast.makeText(
@@ -221,13 +277,12 @@ fun ClienteView(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
-            Text("Volver a selección")
+            Text("Cerrar Sesión")
         }
     }
 }
@@ -240,7 +295,6 @@ fun AccionesView(
     onEditar: (Hostal) -> Unit,
     onVolver: () -> Unit
 ) {
-
     val context = LocalContext.current
     var showHostales by remember { mutableStateOf(false) }
     var hostalAEliminar by remember { mutableStateOf<Hostal?>(null) }
@@ -251,9 +305,7 @@ fun AccionesView(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("¿Qué vamos a hacer?", fontSize = 22.sp)
-
         Spacer(modifier = Modifier.height(24.dp))
 
         if (rol == Rol.Admin) {
@@ -264,7 +316,6 @@ fun AccionesView(
             ) {
                 Text("Crear Hostal")
             }
-
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -282,7 +333,6 @@ fun AccionesView(
             exit = fadeOut() + shrinkVertically()
         ) {
             Column {
-
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Hostales Disponibles", fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -298,9 +348,7 @@ fun AccionesView(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-
                             Text("${hostal.nombre}   ${hostal.precio}")
-
                             if (rol == Rol.Admin) {
                                 Row {
                                     Button(
@@ -309,9 +357,7 @@ fun AccionesView(
                                     ) {
                                         Text("Editar")
                                     }
-
                                     Spacer(modifier = Modifier.width(8.dp))
-
                                     Button(
                                         onClick = { hostalAEliminar = hostal },
                                         colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
@@ -334,13 +380,12 @@ fun AccionesView(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
-            Text("Volver al inicio")
+            Text("Cerrar Sesión")
         }
     }
 }
@@ -350,7 +395,6 @@ fun CrearHostalView(
     onGuardar: (Hostal) -> Unit,
     onVolver: () -> Unit
 ) {
-
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
 
@@ -360,9 +404,7 @@ fun CrearHostalView(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Crear Hostal", fontSize = 22.sp)
-
         Spacer(modifier = Modifier.height(24.dp))
 
         TextField(nombre, { nombre = it }, label = { Text("Nombre del Hostal") })
@@ -376,7 +418,7 @@ fun CrearHostalView(
         Button(
             onClick = {
                 if (nombre.isNotBlank() && precio.isNotBlank()) {
-                    onGuardar(Hostal(nombre, precio))
+                    onGuardar(Hostal(nombre = nombre, precio = precio))
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
@@ -402,7 +444,6 @@ fun EditarHostalView(
     onGuardar: (Hostal) -> Unit,
     onVolver: () -> Unit
 ) {
-
     var nombre by remember { mutableStateOf(hostal.nombre) }
     var precio by remember { mutableStateOf(hostal.precio) }
 
@@ -412,9 +453,7 @@ fun EditarHostalView(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text("Actualizar Hostal", fontSize = 22.sp)
-
         Spacer(modifier = Modifier.height(24.dp))
 
         TextField(nombre, { nombre = it }, label = { Text("Nombre del Hostal") })
@@ -428,7 +467,7 @@ fun EditarHostalView(
         Button(
             onClick = {
                 if (nombre.isNotBlank() && precio.isNotBlank()) {
-                    onGuardar(Hostal(nombre, precio))
+                    onGuardar(Hostal(nombre = nombre, precio = precio))
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
@@ -454,4 +493,3 @@ fun GreetingPreview() {
         Greeting()
     }
 }
-
