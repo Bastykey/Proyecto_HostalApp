@@ -1,3 +1,4 @@
+package com.example.hostalapp1
 
 import android.os.Bundle
 import android.widget.Toast
@@ -35,6 +36,15 @@ enum class Rol {
     Cliente
 }
 
+data class Usuario(
+    val nombre: String,
+    val apellidoPaterno: String,
+    val apellidoMaterno: String,
+    val rut: String,
+    val correo: String,
+    val telefono: String
+)
+
 private const val ADMIN_USUARIO = "Admin"
 private const val ADMIN_CONTRASEÑA = "Admin 1"
 
@@ -67,16 +77,46 @@ fun Greeting(modifier: Modifier = Modifier) {
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
     var rolSeleccionado by remember { mutableStateOf<Rol?>(null) }
     val hostales = remember { mutableStateListOf<Hostal>() }
+    var showRegistro by remember { mutableStateOf(false) }
+    var showRegistroExitoso by remember { mutableStateOf(false) }
 
     when {
-        rolSeleccionado == null -> {
-            LoginView(
-                onLoginExitoso = { rol ->
-                    rolSeleccionado = rol
+        // Vista de Registro Exitoso
+        showRegistroExitoso -> {
+            RegistroExitosoView(
+                onVolver = {
+                    showRegistroExitoso = false
+                    rolSeleccionado = null
                 }
             )
         }
 
+        // Vista de Registro
+        showRegistro -> {
+            RegistroView(
+                onRegistrado = {
+                    showRegistro = false
+                    showRegistroExitoso = true
+                },
+                onVolver = {
+                    showRegistro = false
+                }
+            )
+        }
+
+        //  Login
+        rolSeleccionado == null -> {
+            LoginView(
+                onLoginExitoso = { rol ->
+                    rolSeleccionado = rol
+                },
+                onRegistrarse = {
+                    showRegistro = true
+                }
+            )
+        }
+
+        //  Cliente
         rolSeleccionado == Rol.Cliente -> {
             ClienteView(
                 hostales = hostales,
@@ -84,6 +124,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
+        //  Admin - Crear
         rolSeleccionado == Rol.Admin && showCrearHostal -> {
             CrearHostalView(
                 onGuardar = {
@@ -94,6 +135,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
+        //  Admin - Editar
         rolSeleccionado == Rol.Admin && showEditarHostal && hostalSeleccionado != null -> {
             EditarHostalView(
                 hostal = hostalSeleccionado!!,
@@ -112,6 +154,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
+        // Menú principal
         else -> {
             AccionesView(
                 hostales = hostales,
@@ -129,7 +172,8 @@ fun Greeting(modifier: Modifier = Modifier) {
 
 @Composable
 fun LoginView(
-    onLoginExitoso: (Rol) -> Unit
+    onLoginExitoso: (Rol) -> Unit,
+    onRegistrarse: () -> Unit
 ) {
     val context = LocalContext.current
     var usuario by remember { mutableStateOf("") }
@@ -149,6 +193,7 @@ fun LoginView(
         Text("Inicia sesión para continuar", fontSize = 16.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(32.dp))
 
+        //
         TextField(
             value = usuario,
             onValueChange = {
@@ -229,6 +274,13 @@ fun LoginView(
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
             Text("Iniciar Sesión")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Boton para registrarse
+        TextButton(onClick = onRegistrarse) {
+            Text("¿No tienes cuenta? Registrate aqui")
         }
     }
 }
@@ -482,6 +534,225 @@ fun EditarHostalView(
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
         ) {
             Text("Volver")
+        }
+    }
+}
+
+@Composable
+fun RegistroView(
+    onRegistrado: (Usuario) -> Unit,
+    onVolver: () -> Unit
+) {
+    val context = LocalContext.current
+
+    // Variables de los campos del formulario
+    var nombre by remember { mutableStateOf("") }
+    var apellidoPaterno by remember { mutableStateOf("") }
+    var apellidoMaterno by remember { mutableStateOf("") }
+    var rut by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+
+    // Variables de control de errores por campo
+    var errorNombre by remember { mutableStateOf(false) }
+    var errorApellidoPaterno by remember { mutableStateOf(false) }
+    var errorApellidoMaterno by remember { mutableStateOf(false) }
+    var errorRut by remember { mutableStateOf(false) }
+    var errorCorreo by remember { mutableStateOf(false) }
+    var errorTelefono by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Registro de Usuario", fontSize = 22.sp)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Campo Nombres
+        TextField(
+            value = nombre,
+            onValueChange = {
+                nombre = it
+                errorNombre = false // Se limpia el error al escribir
+            },
+            label = { Text("Nombres ") },
+            isError = errorNombre
+        )
+
+        if (errorNombre) {
+            Text("El nombre es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo Apellido Paterno
+        TextField(
+            value = apellidoPaterno,
+            onValueChange = {
+                apellidoPaterno = it
+                errorApellidoPaterno = false
+            },
+            label = { Text("Apellido Paterno") },
+            isError = errorApellidoPaterno
+        )
+
+        if (errorApellidoPaterno) {
+            Text("El apellido paterno es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo Apellido Materno
+        TextField(
+            value = apellidoMaterno,
+            onValueChange = {
+                apellidoMaterno = it
+                errorApellidoMaterno = false
+            },
+            label = { Text("Apellido Materno") },
+            isError = errorApellidoMaterno
+        )
+
+        if (errorApellidoMaterno) {
+            Text("El apellido materno es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo RUT
+        TextField(
+            value = rut,
+            onValueChange = {
+                rut = it
+                errorRut = false
+            },
+            label = { Text("RUT") },
+            isError = errorRut
+        )
+
+        if (errorRut) {
+            Text("El RUT es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo Correo
+        TextField(
+            value = correo,
+            onValueChange = {
+                correo = it
+                errorCorreo = false
+            },
+            label = { Text("Correo Electrónico") },
+            isError = errorCorreo
+        )
+
+        if (errorCorreo) {
+            Text("El correo es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo Teléfono
+        TextField(
+            value = telefono,
+            onValueChange = {
+                telefono = it
+                errorTelefono = false
+            },
+            label = { Text("Teléfono") },
+            isError = errorTelefono
+        )
+
+        if (errorTelefono) {
+            Text("El teléfono es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Botón de registro
+        Button(
+            onClick = {
+                // Validación de campos obligatorios
+                errorNombre = nombre.isBlank()
+                errorApellidoPaterno = apellidoPaterno.isBlank()
+                errorApellidoMaterno = apellidoMaterno.isBlank()
+                errorRut = rut.isBlank()
+                errorCorreo = correo.isBlank()
+                errorTelefono = telefono.isBlank()
+
+                // Si no hay errores, se registra el usuario
+                if (
+                    !errorNombre &&
+                    !errorApellidoPaterno &&
+                    !errorApellidoMaterno &&
+                    !errorRut &&
+                    !errorCorreo &&
+                    !errorTelefono
+                ) {
+                    onRegistrado(
+                        Usuario(
+                            nombre,
+                            apellidoPaterno,
+                            apellidoMaterno,
+                            rut,
+                            correo,
+                            telefono
+                        )
+                    )
+                    // Mensaje de confirmación
+                    Toast.makeText(
+                        context,
+                        "Registro exitoso",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Registrarse ahora")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para volver manualmente al login
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+        ) {
+            Text("Volver al Login")
+        }
+    }
+}
+
+@Composable
+fun RegistroExitosoView(
+    onVolver: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Se ha registrado correctamente, te hemos enviado un correo para confirmar tu correo.",
+            fontSize = 16.sp,
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Volver al inicio")
         }
     }
 }
