@@ -1,4 +1,4 @@
-package model
+package com.example.hostalapp1.model
 
 data class Hostal(
     val nombre: String,

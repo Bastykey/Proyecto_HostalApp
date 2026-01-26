@@ -20,6 +20,7 @@ import com.example.hostalapp1.ui.theme.HostalApp1Theme
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -72,6 +73,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
+
+    //  estado de carga
+    var cargando by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1500) // simula carga inicial
+        cargando = false
+    }
+
+    // loader
+    if (cargando) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = PurpleSoft)
+        }
+        return
+    }
+
     var showCrearHostal by remember { mutableStateOf(false) }
     var showEditarHostal by remember { mutableStateOf(false) }
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
@@ -104,7 +125,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-        //  Login
+        // Login
         rolSeleccionado == null -> {
             LoginView(
                 onLoginExitoso = { rol ->
@@ -116,7 +137,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-        //  Cliente
+        // Cliente
         rolSeleccionado == Rol.Cliente -> {
             ClienteView(
                 hostales = hostales,
@@ -124,7 +145,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-        //  Admin - Crear
+        // Admin - Crear
         rolSeleccionado == Rol.Admin && showCrearHostal -> {
             CrearHostalView(
                 onGuardar = {
@@ -135,7 +156,7 @@ fun Greeting(modifier: Modifier = Modifier) {
             )
         }
 
-        //  Admin - Editar
+        // Admin - Editar
         rolSeleccionado == Rol.Admin && showEditarHostal && hostalSeleccionado != null -> {
             EditarHostalView(
                 hostal = hostalSeleccionado!!,
@@ -169,6 +190,7 @@ fun Greeting(modifier: Modifier = Modifier) {
         }
     }
 }
+
 
 @Composable
 fun LoginView(
@@ -450,6 +472,9 @@ fun CrearHostalView(
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
 
+    // estado del mensaje
+    var mostrarMensaje by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -460,23 +485,34 @@ fun CrearHostalView(
         Spacer(modifier = Modifier.height(24.dp))
 
         TextField(nombre, { nombre = it }, label = { Text("Nombre del Hostal") })
-
         Spacer(modifier = Modifier.height(12.dp))
-
         TextField(precio, { precio = it }, label = { Text("Precio por noche") })
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
                 if (nombre.isNotBlank() && precio.isNotBlank()) {
-                    onGuardar(Hostal(nombre = nombre, precio = precio))
+                    onGuardar(Hostal(nombre, precio))
+                    mostrarMensaje = true
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
             Text("Guardar")
+        }
+
+        // animacion  del feedback
+        AnimatedVisibility(
+            visible = mostrarMensaje,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut()
+        ) {
+            Text(
+                "Hostal guardado correctamente",
+                color = Color(0xFF2E7D32),
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -489,7 +525,6 @@ fun CrearHostalView(
         }
     }
 }
-
 @Composable
 fun EditarHostalView(
     hostal: Hostal,
