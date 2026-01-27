@@ -23,9 +23,9 @@ fun RegistroExitosoView(
 
         // Mensaje de confirmación
         Text(
-            text = "Registro exitoso 🎉\n\n" +
-                    "Te hemos enviado un correo para confirmar tu cuenta.",
-            fontSize = 16.sp,
+            text = "¡Felicidades! Registro exitoso 🎉\n\n" +
+                    "Ahora puedes acceder a HostalApp!.",
+            fontSize = 18.sp,
             modifier = Modifier.fillMaxWidth(0.8f)
         )
 

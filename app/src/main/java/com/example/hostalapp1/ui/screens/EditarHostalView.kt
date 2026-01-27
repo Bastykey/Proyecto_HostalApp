@@ -16,7 +16,6 @@ fun EditarHostalView(
     onGuardar: (Hostal) -> Unit,
     onVolver: () -> Unit
 ) {
-    // Estados locales inicializados con los datos del hostal seleccionado
     var nombre by remember { mutableStateOf(hostal.nombre) }
     var precio by remember { mutableStateOf(hostal.precio) }
 
@@ -58,7 +57,6 @@ fun EditarHostalView(
             onClick = {
                 // Validación simple
                 if (nombre.isNotBlank() && precio.isNotBlank()) {
-                    // Se envía el hostal editado al AppRoot
                     onGuardar(
                         Hostal(
                             nombre = nombre,

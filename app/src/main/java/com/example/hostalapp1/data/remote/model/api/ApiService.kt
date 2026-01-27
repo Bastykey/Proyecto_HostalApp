@@ -1,4 +1,4 @@
-package com.example.hostalapp1.data.remote.api
+package com.example.hostalapp1.data.remote.model.api
 
 import com.example.hostalapp1.data.remote.model.model.HostalExternoDto
 import retrofit2.http.GET

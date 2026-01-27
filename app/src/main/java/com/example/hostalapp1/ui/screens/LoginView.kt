@@ -24,10 +24,8 @@ fun LoginView(
 ) {
     val context = LocalContext.current
 
-    // Estados locales del formulario
     var usuario by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
-    // Estados de error
     var errorUsuario by remember { mutableStateOf(false) }
     var errorContrasena by remember { mutableStateOf(false) }
 

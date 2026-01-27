@@ -4,7 +4,7 @@ package com.example.hostalapp1.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-//  Representa la tabla "hostales" en SQLite
+// tabla "hostales" en SQLite
 @Entity(tableName = "hostales")
 data class HostalEntity(
 

@@ -15,7 +15,6 @@ fun CrearHostalView(
     onGuardar: (Hostal) -> Unit,
     onVolver: () -> Unit
 ) {
-    // Estados locales de los campos
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
 

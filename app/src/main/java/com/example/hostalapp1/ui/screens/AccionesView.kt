@@ -42,16 +42,11 @@ fun AccionesView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // =====================
-        // TÍTULO
-        // =====================
-        Spacer(modifier = Modifier.height(50.dp))
-        Text("¿Qué vamos a hacer?", fontSize = 22.sp)
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(78.dp))
+        Text("¿Qué vamos a hacer?", fontSize = 26.sp)
+        Spacer(modifier = Modifier.height(27.dp))
 
-        // =====================
         // BOTÓN CREAR (ADMIN)
-        // =====================
         if (rol == Rol.Admin) {
             Button(
                 onClick = onCrear,
@@ -63,9 +58,7 @@ fun AccionesView(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // =====================
         // MOSTRAR HOSTALES
-        // =====================
         Button(
             onClick = { showHostales = !showHostales },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
@@ -74,9 +67,8 @@ fun AccionesView(
             Text("Ver Hostales")
         }
 
-        // =====================
         // LISTA DE HOSTALES
-        // =====================
+
         AnimatedVisibility(
             visible = showHostales,
             enter = fadeIn() + expandVertically(),
@@ -137,9 +129,7 @@ fun AccionesView(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // =====================
         // GPS (RECURSO NATIVO)
-        // =====================
         Button(
             onClick = {
                 viewModel.obtenerUbicacion()
@@ -157,9 +147,8 @@ fun AccionesView(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // =====================
         // CERRAR SESIÓN
-        // =====================
+
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),

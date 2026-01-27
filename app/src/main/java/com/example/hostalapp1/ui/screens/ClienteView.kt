@@ -25,18 +25,18 @@ fun ClienteView(
 ) {
     val context = LocalContext.current
 
-    // 🔹 Estados para reserva
+    // Estados para reserva
     var showReserva by remember { mutableStateOf(false) }
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
 
-    // 🔹 Vista de reserva
+    // Vista de reserva
     if (showReserva && hostalSeleccionado != null) {
         ReservarHostalView(
             hostal = hostalSeleccionado!!,
             onReservaExitosa = {
                 Toast.makeText(
                     context,
-                    "Has reservado con éxito ✅",
+                    "¡¡¡¡ Has reservado con éxito !!!!!",
                     Toast.LENGTH_SHORT
                 ).show()
                 showReserva = false
@@ -56,7 +56,7 @@ fun ClienteView(
             .padding(16.dp)
     ) {
 
-        // 🔹 Botón volver (arriba, claro)
+        // Botón volver
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
@@ -85,12 +85,12 @@ fun ClienteView(
             Text("Cargando hostales...")
         }
 
-        // 🔹 Error (si existe)
+        //  Error (si existe)
         viewModel.error.value?.let {
             Text(it, color = Color.Red)
         }
 
-        // 🔹 Lista ordenada
+        //Lista ordenada
         LazyColumn {
             items(viewModel.hostales) { hostal ->
                 Card(
@@ -101,7 +101,7 @@ fun ClienteView(
                 ) {
                     Row(
                         modifier = Modifier
-                            .padding(12.dp)
+                            .padding(14.dp)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically

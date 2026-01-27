@@ -13,31 +13,19 @@ import com.example.hostalapp1.viewmodel.HostalViewModelFactory
 @Composable
 fun AppRoot() {
 
-    // =====================
-    // ESTADOS GENERALES
-    // =====================
     var rol by rememberSaveable { mutableStateOf<Rol?>(null) }
     var showRegistro by rememberSaveable { mutableStateOf(false) }
     var showRegistroExitoso by rememberSaveable { mutableStateOf(false) }
     var showCrearHostal by rememberSaveable { mutableStateOf(false) }
-
-    // 🔹 Estados para EDITAR hostal
     var showEditarHostal by rememberSaveable { mutableStateOf(false) }
     var hostalAEditar by remember { mutableStateOf<Hostal?>(null) }
-
-    // 🔹 Application obtenido correctamente
     val application = LocalContext.current.applicationContext as Application
-
-    // 🔹 ViewModel con Factory (FORMA CORRECTA)
     val hostalViewModel: HostalViewModel = viewModel(
         factory = HostalViewModelFactory(application)
     )
 
     when {
-
-        // =====================
-        // REGISTRO EXITOSO
-        // =====================
+        //    REGISTRO EXITOSO
         showRegistroExitoso -> {
             RegistroExitosoView(
                 onVolver = {
@@ -47,9 +35,7 @@ fun AppRoot() {
             )
         }
 
-        // =====================
-        // REGISTRO
-        // =====================
+        //       REGISTRO
         showRegistro -> {
             RegistroView(
                 onRegistrado = {
@@ -60,9 +46,8 @@ fun AppRoot() {
             )
         }
 
-        // =====================
-        // EDITAR HOSTAL (ADMIN)
-        // =====================
+        //  EDITAR HOSTAL (ADMIN)
+
         showEditarHostal && hostalAEditar != null -> {
             EditarHostalView(
                 hostal = hostalAEditar!!,
@@ -81,9 +66,8 @@ fun AppRoot() {
             )
         }
 
-        // =====================
-        // CREAR HOSTAL (ADMIN)
-        // =====================
+        //  CREAR HOSTAL (ADMIN)
+
         showCrearHostal -> {
             CrearHostalView(
                 onGuardar = { hostal ->
@@ -94,9 +78,7 @@ fun AppRoot() {
             )
         }
 
-        // =====================
-        // LOGIN
-        // =====================
+        //         LOGIN
         rol == null -> {
             LoginView(
                 onLoginExitoso = { rolLogueado ->
@@ -106,19 +88,14 @@ fun AppRoot() {
             )
         }
 
-        // =====================
-        // CLIENTE
-        // =====================
+        //       CLIENTE
         rol == Rol.Cliente -> {
             ClienteView(
                 viewModel = hostalViewModel,
                 onVolver = { rol = null }
             )
         }
-
-        // =====================
-        // ADMIN
-        // =====================
+        //        ADMIN
         else -> {
             AccionesView(
                 hostales = hostalViewModel.hostales,

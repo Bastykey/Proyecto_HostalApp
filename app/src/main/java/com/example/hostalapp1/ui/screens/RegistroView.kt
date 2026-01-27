@@ -26,7 +26,6 @@ fun RegistroView(
     var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
 
-    // Estados de error por campo
     var errorNombre by remember { mutableStateOf(false) }
     var errorApellidoPaterno by remember { mutableStateOf(false) }
     var errorApellidoMaterno by remember { mutableStateOf(false) }

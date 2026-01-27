@@ -22,7 +22,6 @@ fun ReservarHostalView(
 ) {
     val context = LocalContext.current
 
-    //  Datos del cliente
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
 
@@ -62,7 +61,7 @@ fun ReservarHostalView(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Confirmar reserva
+        // boton para Confirmar reserva
         Button(
             onClick = {
                 if (nombre.isNotBlank() && correo.isNotBlank()) {
@@ -83,7 +82,7 @@ fun ReservarHostalView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        //  Volver
+        // boton para Volver
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)

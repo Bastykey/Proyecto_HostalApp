@@ -9,41 +9,40 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hostalapp1.data.local.HostalDatabase
 import com.example.hostalapp1.data.local.HostalEntity
-import com.example.hostalapp1.data.remote.api.RetrofitClient
+import com.example.hostalapp1.data.remote.model.api.RetrofitClient
 import com.example.hostalapp1.model.Hostal
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 
 class HostalViewModel(application: Application) : AndroidViewModel(application) {
 
-    // 🔹 Lista observable para Compose
+    // Lista observable para Compose
     private val _hostales = mutableStateListOf<Hostal>()
     val hostales: List<Hostal> = _hostales
 
-    // 🔹 Ubicación GPS
+    // Ubicación GPS
     var ubicacionActual = mutableStateOf<Location?>(null)
         private set
 
-    // 🔹 Acceso a SQLite
+    // Acceso a SQLite
     private val hostalDao =
         HostalDatabase.getDatabase(application).hostalDao()
 
-    // 🔹 Estados
+    // Estados
     var cargando = mutableStateOf(false)
         private set
 
     var error = mutableStateOf<String?>(null)
         private set
 
-    // 🔹 Se ejecuta UNA SOLA VEZ
+    // Se ejecuta UNA SOLA VEZ
     init {
         error.value = null
         cargarHostalesLocales()
     }
 
-    // =====================
     // GPS (recurso nativo)
-    // =====================
+
     @SuppressLint("MissingPermission")
     fun obtenerUbicacion() {
         val fusedLocationClient =
@@ -54,13 +53,10 @@ class HostalViewModel(application: Application) : AndroidViewModel(application) 
                 ubicacionActual.value = location
             }
             .addOnFailureListener {
-                // ❌ No rompemos la app
+                //
             }
     }
-
-    // =====================
     // CRUD LOCAL (SQLite)
-    // =====================
     fun agregarHostal(hostal: Hostal) {
         viewModelScope.launch {
             hostalDao.insertarHostal(
@@ -72,7 +68,6 @@ class HostalViewModel(application: Application) : AndroidViewModel(application) 
             cargarHostalesLocales()
         }
     }
-
     fun eliminarHostal(hostal: Hostal) {
         viewModelScope.launch {
             hostalDao.eliminarHostal(
@@ -118,9 +113,8 @@ class HostalViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // =====================
-    // RETROFIT (SILENCIOSO)
-    // =====================
+// RETROFIT
+
     fun cargarHostalesExternos() {
         viewModelScope.launch {
             try {
@@ -138,15 +132,14 @@ class HostalViewModel(application: Application) : AndroidViewModel(application) 
                 cargarHostalesLocales()
 
             } catch (e: Exception) {
-                // ❌ NO hacemos nada
-                // 👉 La app NO se cae aunque falle la API
+                // Tuve que eliminar la exepcion porque
+                // el programa se caia en esta parte.
+
             }
         }
     }
 
-    // =====================
     // GPS + API
-    // =====================
     @SuppressLint("MissingPermission")
     fun cargarHostalesSegunUbicacion() {
         val fusedLocationClient =
@@ -159,11 +152,11 @@ class HostalViewModel(application: Application) : AndroidViewModel(application) 
                     // 🔹 GPS OK → llamamos a la API
                     cargarHostalesExternos()
                 } else {
-                    // ❌ No hacemos nada
+                    // sin validacion
                 }
             }
             .addOnFailureListener {
-                // ❌ No rompemos la app
+                // sin validaciom
             }
     }
 }

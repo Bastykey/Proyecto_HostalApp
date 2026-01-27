@@ -5,20 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-//  Base de datos local de la app
+//  Base de datos local de la app. SQLITE
 @Database(
-    entities = [HostalEntity::class],   // Tablas
-    version = 1,                         // Versión inicial
+    entities = [HostalEntity::class],
+    version = 1,
     exportSchema = false
 )
 abstract class HostalDatabase : RoomDatabase() {
 
-    // DAO que maneja las operaciones
+    // Aqui el DAO  maneja las operaciones
     abstract fun hostalDao(): HostalDao
 
     companion object {
 
-        //  Instancia única (singleton)
+        //  Instancia única
         @Volatile
         private var INSTANCE: HostalDatabase? = null
 
@@ -27,7 +27,7 @@ abstract class HostalDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     HostalDatabase::class.java,
-                    "hostal_database"      // Nombre del archivo SQLite
+                    "hostal_database"
                 ).build()
                 INSTANCE = instance
                 instance

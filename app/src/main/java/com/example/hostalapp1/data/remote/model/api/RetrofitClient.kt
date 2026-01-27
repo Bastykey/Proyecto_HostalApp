@@ -1,4 +1,4 @@
-package com.example.hostalapp1.data.remote.api
+package com.example.hostalapp1.data.remote.model.api
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

@@ -7,26 +7,22 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.hostalapp1.data.local.HostalEntity
 
+//Operadores CRUD EN LA BD
 @Dao
 interface HostalDao {
 
-    // Obtener todos los hostales
     @Query("SELECT * FROM hostales")
     suspend fun obtenerHostales(): List<HostalEntity>
 
-    //  Insertar un hostal
     @Insert
     suspend fun insertarHostal(hostal: HostalEntity)
 
-    // Actualizar un hostal
     @Update
     suspend fun actualizarHostal(hostal: HostalEntity)
 
-    //  Eliminar un hostal
     @Delete
     suspend fun eliminarHostal(hostal: HostalEntity)
 
-    // Eliminar todos (útil para pruebas)
     @Query("DELETE FROM hostales")
     suspend fun eliminarTodos()
 }
