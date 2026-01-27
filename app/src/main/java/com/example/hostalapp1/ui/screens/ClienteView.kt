@@ -2,6 +2,7 @@ package com.example.hostalapp1.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
@@ -13,9 +14,7 @@ import com.example.hostalapp1.viewmodel.HostalViewModel
 import com.example.hostalapp1.PurpleSoft
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
-
-
-
+import com.example.hostalapp1.model.Hostal
 
 @Composable
 fun ClienteView(
@@ -23,7 +22,28 @@ fun ClienteView(
     onVolver: () -> Unit
 ) {
     val context = LocalContext.current
-    // Cargar hostales externos al entrar a la vista
+
+    //  Estados para reserva
+    var showReserva by remember { mutableStateOf(false) }
+    var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
+
+    //  Si está reservando, se muestra la vista de reserva
+    if (showReserva && hostalSeleccionado != null) {
+        ReservarHostalView(
+            hostal = hostalSeleccionado!!,
+            onReservaExitosa = {
+                showReserva = false
+                hostalSeleccionado = null
+            },
+            onVolver = {
+                showReserva = false
+                hostalSeleccionado = null
+            }
+        )
+        return
+    }
+
+    //  Cargar hostales externos al entrar a la vista
     LaunchedEffect(Unit) {
         viewModel.cargarHostalesExternos()
     }
@@ -44,12 +64,12 @@ fun ClienteView(
             Text("Cargando hostales...")
         }
 
-        //error
+        //  error
         viewModel.error.value?.let {
             Text(it, color = Color.Red)
         }
 
-        // es la lista de hostales
+        //  es la lista de hostales
         if (!viewModel.cargando.value && viewModel.hostales.isNotEmpty()) {
             viewModel.hostales.forEach { hostal ->
                 Row(
@@ -59,18 +79,18 @@ fun ClienteView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Text("${hostal.nombre}   ${hostal.precio}")
+
+                    // 🔹 Botón reservar
                     Button(
                         onClick = {
-                            Toast.makeText(
-                                context,
-                                "Hostal seleccionado: ${hostal.nombre}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            hostalSeleccionado = hostal
+                            showReserva = true
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
                     ) {
-                        Text("Seleccionar")
+                        Text("Reservar")
                     }
                 }
             }

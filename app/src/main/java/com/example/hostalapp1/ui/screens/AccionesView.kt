@@ -7,24 +7,23 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hostalapp1.model.Hostal
 import com.example.hostalapp1.model.Rol
+import com.example.hostalapp1.viewmodel.HostalViewModel
 import com.example.hostalapp1.PurpleSoft
 
 @Composable
 fun AccionesView(
     hostales: List<Hostal>,
     rol: Rol,
+    viewModel: HostalViewModel,   // 🔹 ViewModel necesario (GPS / SQLite)
     onCrear: () -> Unit,
     onEditar: (Hostal) -> Unit,
     onEliminar: (Hostal) -> Unit,
@@ -34,7 +33,6 @@ fun AccionesView(
     var showHostales by remember { mutableStateOf(false) }
 
     // 🔹 Copia segura para evitar crash por recomposición
-
     val hostalesSeguro = remember(hostales) { hostales.toList() }
 
     Column(
@@ -44,11 +42,15 @@ fun AccionesView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Título principal
+        // =====================
+        // TÍTULO
+        // =====================
         Text("¿Qué vamos a hacer?", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botón solo visible para Admin
+        // =====================
+        // BOTÓN CREAR (ADMIN)
+        // =====================
         if (rol == Rol.Admin) {
             Button(
                 onClick = onCrear,
@@ -60,7 +62,9 @@ fun AccionesView(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Mostrar / ocultar lista
+        // =====================
+        // MOSTRAR HOSTALES
+        // =====================
         Button(
             onClick = { showHostales = !showHostales },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
@@ -69,7 +73,9 @@ fun AccionesView(
             Text("Ver Hostales")
         }
 
-        // Lista animada
+        // =====================
+        // LISTA DE HOSTALES
+        // =====================
         AnimatedVisibility(
             visible = showHostales,
             enter = fadeIn() + expandVertically(),
@@ -84,7 +90,6 @@ fun AccionesView(
                     Text("No hay hostales registrados...")
                 } else {
                     hostalesSeguro.forEach { hostal ->
-
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -93,10 +98,10 @@ fun AccionesView(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
 
-                            // Datos del hostal
+                            // 🔹 Datos del hostal
                             Text("${hostal.nombre}   ${hostal.precio}")
 
-                            // Acciones solo para Admin
+                            // 🔹 Acciones solo para Admin
                             if (rol == Rol.Admin) {
                                 Row {
                                     Button(
@@ -129,9 +134,31 @@ fun AccionesView(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Volver al login
+        // =====================
+        // GPS (RECURSO NATIVO)
+        // =====================
+        Button(
+            onClick = {
+                viewModel.obtenerUbicacion()
+                Toast.makeText(
+                    context,
+                    "Obteniendo ubicación GPS...",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Obtener ubicación")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // =====================
+        // CERRAR SESIÓN
+        // =====================
         Button(
             onClick = onVolver,
             colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
