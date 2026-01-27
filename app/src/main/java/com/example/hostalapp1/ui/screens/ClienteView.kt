@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.sp
 import com.example.hostalapp1.viewmodel.HostalViewModel
 import com.example.hostalapp1.PurpleSoft
 import android.widget.Toast
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.Color
 import com.example.hostalapp1.model.Hostal
 
@@ -23,15 +25,20 @@ fun ClienteView(
 ) {
     val context = LocalContext.current
 
-    //  Estados para reserva
+    // 🔹 Estados para reserva
     var showReserva by remember { mutableStateOf(false) }
     var hostalSeleccionado by remember { mutableStateOf<Hostal?>(null) }
 
-    //  Si está reservando, se muestra la vista de reserva
+    // 🔹 Vista de reserva
     if (showReserva && hostalSeleccionado != null) {
         ReservarHostalView(
             hostal = hostalSeleccionado!!,
             onReservaExitosa = {
+                Toast.makeText(
+                    context,
+                    "Has reservado con éxito ✅",
+                    Toast.LENGTH_SHORT
+                ).show()
                 showReserva = false
                 hostalSeleccionado = null
             },
@@ -43,66 +50,81 @@ fun ClienteView(
         return
     }
 
-    //  Cargar hostales externos al entrar a la vista
-    LaunchedEffect(Unit) {
-        viewModel.cargarHostalesExternos()
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
     ) {
-        Text("Hostales Disponibles", fontSize = 22.sp)
+
+        // 🔹 Botón volver (arriba, claro)
+        Button(
+            onClick = onVolver,
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("⬅ Volver")
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        //  loader
+        Text(
+            text = "Hostales Disponibles",
+            fontSize = 22.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 🔹 Loader
         if (viewModel.cargando.value) {
-            CircularProgressIndicator(color = PurpleSoft)
+            CircularProgressIndicator(
+                color = PurpleSoft,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text("Cargando hostales...")
         }
 
-        //  error
+        // 🔹 Error (si existe)
         viewModel.error.value?.let {
             Text(it, color = Color.Red)
         }
 
-        //  es la lista de hostales
-        if (!viewModel.cargando.value && viewModel.hostales.isNotEmpty()) {
-            viewModel.hostales.forEach { hostal ->
-                Row(
+        // 🔹 Lista ordenada
+        LazyColumn {
+            items(viewModel.hostales) { hostal ->
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-
-                    Text("${hostal.nombre}   ${hostal.precio}")
-
-                    // 🔹 Botón reservar
-                    Button(
-                        onClick = {
-                            hostalSeleccionado = hostal
-                            showReserva = true
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Reservar")
+
+                        Column {
+                            Text(hostal.nombre, fontSize = 16.sp)
+                            Text(hostal.precio, color = Color.Gray)
+                        }
+
+                        Button(
+                            onClick = {
+                                hostalSeleccionado = hostal
+                                showReserva = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft)
+                        ) {
+                            Text("Reservar")
+                        }
                     }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = onVolver,
-            colors = ButtonDefaults.buttonColors(containerColor = PurpleSoft),
-            modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
-            Text("Cerrar Sesión")
-        }
     }
 }
+

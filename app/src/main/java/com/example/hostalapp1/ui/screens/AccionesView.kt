@@ -45,6 +45,7 @@ fun AccionesView(
         // =====================
         // TÍTULO
         // =====================
+        Spacer(modifier = Modifier.height(50.dp))
         Text("¿Qué vamos a hacer?", fontSize = 22.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
